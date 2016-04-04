@@ -1,60 +1,50 @@
 
-
 class OysterCard
 
  MAXIMUM_BALANCE = 90
  MINIMUM_BALANCE = 1
-
  MINIMUM_CHARGE = 1
 
- attr_reader :balance, :entry_station,  :previous_journeys
- attr_accessor :in_journey
-
+ attr_reader :balance, :previous_journeys, :journeys
+ 
  def initialize
-   @balance = 0 
-   @in_journey = false
+   @balance = 0
    @previous_journeys = {}
+   @journeys = []
  end
 
  def top_up(amount)
- 	raise "error balance greater than #{MAXIMUM_BALANCE}" if balance + amount > MAXIMUM_BALANCE
+ 	raise "error balance greater than maximum balance" if exceed_balance?(amount)
  	@balance += amount
  end
 
- def touch_in(station)
- 	@entry_station = station
- 	raise 'Balance too low.' if balance < MINIMUM_BALANCE
- 	@in_journey = true
- end
+ def touch_in(entry_station)
+ 	raise 'Balance too low.' if below_min_balance?
+  @previous_journeys.merge!({entry_station: entry_station})
+end
 
- def touch_out(exit_station)
- 	@exit_station = exit_station
- 	deduct(MINIMUM_CHARGE)
-    journey_hash
-    @entry_station = nil
-    @in_journey = false
- end
+def touch_out(exit_station)
+  deduct(MINIMUM_CHARGE)
+  @previous_journeys.merge!({exit_station: exit_station})
+  add_journey_to_array
+  @previous_journeys = {}
+end
 
- def in_journey?
-   !!entry_station
- end
+private
 
- private 
+def add_journey_to_array
+  @journeys << @previous_journeys
+end
 
- def deduct(amount)
- 	@balance -= amount
- end
+def deduct(amount)
+  @balance -= amount
+end
 
- def journey_hash
- 	@previous_journeys.merge!({@entry_station => @exit_station})
- end
+def exceed_balance?(amount)
+  balance + amount > MAXIMUM_BALANCE
+end
 
-
-
-
-
-
-
-
-
+def below_min_balance?
+  balance < MINIMUM_BALANCE
+end
 end
